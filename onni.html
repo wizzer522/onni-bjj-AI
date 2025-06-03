@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Onni BJJ Coach</title>
+<style>
+body {
+font-family: 'Segoe UI', sans-serif;
+background-color: #1e1e2f;
+color: white;
+text-align: center;
+padding: 30px;
+}
+
+h1 {
+margin-bottom: 20px;
+}
+
+#timerDisplay {
+font-size: 4rem;
+margin: 10px 0;
+font-weight: bold;
+}
+
+.timer-buttons {
+display: flex;
+justify-content: center;
+gap: 10px;
+margin-bottom: 20px;
+}
+
+.menu {
+margin: 20px auto;
+display: flex;
+flex-direction: column;
+gap: 10px;
+max-width: 300px;
+}
+
+button {
+padding: 12px;
+font-size: 1rem;
+border: none;
+border-radius: 6px;
+cursor: pointer;
+background-color: #3a3af0;
+color: white;
+transition: background 0.2s ease;
+}
+
+button:hover {
+background-color: #5f5fff;
+}
+
+.stop-button {
+background-color: crimson;
+}
+
+#output {
+background: #2e2e40;
+border-radius: 8px;
+padding: 20px;
+margin-top: 20px;
+min-height: 100px;
+}
+</style>
+</head>
+<body>
+
+<h1>🥋 Onni BJJ Coach</h1>
+
+<!-- TOP TIMER SECTION -->
+<div id="timerDisplay">00:00</div>
+<div class="timer-buttons">
+<button onclick="startTimer(5)">▶️ Start 5-Minute Timer</button>
+<button class="stop-button" onclick="resetAll()">🛑 Stop / Reset</button>
+</div>
+
+<!-- TECHNIQUE MENU -->
+<div class="menu">
+<button onclick="showTechniques('takedown')">Takedown Techniques</button>
+<button onclick="showTechniques('pass')">Pass Guard Techniques</button>
+<button onclick="showTechniques('pin')">Pinning Techniques</button>
+<button onclick="showTechniques('submission')">Submission Techniques</button>
+</div>
+
+<!-- TECHNIQUE OUTPUT -->
+<div id="output"><em>Select a technique to begin.</em></div>
+
+<script>
+const techniques = {
+takedown: [
+"Snap down to go behind",
+"Osoto gari",
+"Single leg takedown",
+"Russian tie to double leg"
+],
+pass: [
+"Torreando pass",
+"Leg drag pass",
+"Knee cut pass",
+"Over-under pass"
+],
+pin: [
+"Side control with crossface",
+"Kesa gatame",
+"North-south control",
+"Mount control with grapevines"
+],
+submission: [
+"Armbar from mount",
+"Rear naked choke",
+"Guillotine choke",
+"Kimura from side control"
+]
+};
+
+function showTechniques(type) {
+const output = document.getElementById('output');
+const list = techniques[type];
+const title = `${capitalize(type)} Techniques`;
+output.innerHTML = `<strong>${title}:</strong><ul>${list.map(t => `<li>${t}</li>`).join('')}</ul>`;
+speak(title);
+}
+
+function capitalize(str) {
+return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+let timerInterval;
+
+function startTimer(minutes) {
+clearInterval(timerInterval);
+let totalSeconds = minutes * 60;
+const timerDisplay = document.getElementById('timerDisplay');
+
+timerInterval = setInterval(() => {
+const min = Math.floor(totalSeconds / 60);
+const sec = totalSeconds % 60;
+timerDisplay.textContent = `${min}:${sec < 10 ? '0' : ''}${sec}`;
+
+if (totalSeconds === 60) {
+speak("One minute left. Breathe. Leave it all on the mat!");
+}
+
+if (totalSeconds <= 0) {
+clearInterval(timerInterval);
+speak("Time!");
+timerDisplay.textContent = "⏱ Time's up!";
+}
+
+totalSeconds--;
+}, 1000);
+}
+
+function resetAll() {
+document.getElementById('output').innerHTML = "<em>Select a technique to begin.</em>";
+document.getElementById('timerDisplay').textContent = "00:00";
+clearInterval(timerInterval);
+speechSynthesis.cancel();
+}
+
+function speak(text) {
+const utter = new SpeechSynthesisUtterance(text);
+utter.pitch = 1;
+utter.rate = 1;
+utter.lang = 'en-US';
+speechSynthesis.cancel(); // stop any ongoing voice
+speechSynthesis.speak(utter);
+}
+</script>
+
+</body>
+</html>
