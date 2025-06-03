@@ -1,184 +1,283 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Onni BJJ Coach</title>
-<style>
-body {
-  font-family: 'Segoe UI', sans-serif;
-  background-color: #1e1e2f;
-  color: white;
-  text-align: center;
-  padding: 30px;
-}
-h1 {
-  margin-bottom: 20px;
-}
-#timerDisplay {
-  font-size: 4rem;
-  margin: 10px 0;
-  font-weight: bold;
-}
-.timer-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-.menu {
-  margin: 20px auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-width: 300px;
-}
-button {
-  padding: 12px;
-  font-size: 1rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  background-color: #3a3af0;
-  color: white;
-  transition: background 0.2s ease;
-}
-button:hover {
-  background-color: #5f5fff;
-}
-.stop-button {
-  background-color: crimson;
-}
-#output {
-  background: #2e2e40;
-  border-radius: 8px;
-  padding: 20px;
-  margin-top: 20px;
-  min-height: 100px;
-}
-.mode-toggle {
-  margin-bottom: 20px;
-}
-input[type="number"] {
-  width: 60px;
-  padding: 5px;
-  margin-left: 10px;
-  text-align: center;
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Onni BJJ Coach</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #1e1e2f;
+      color: white;
+      text-align: center;
+      padding: 30px;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    #timerDisplay {
+      font-size: 4rem;
+      margin: 10px 0;
+      font-weight: bold;
+    }
+    .timer-buttons, .menu {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 12px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background-color: #3a3af0;
+      color: white;
+      transition: background 0.2s ease;
+    }
+    button:hover {
+      background-color: #5f5fff;
+    }
+    .stop-button {
+      background-color: crimson;
+    }
+    #output {
+      background: #2e2e40;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+      min-height: 100px;
+    }
+    input[type="number"] {
+      width: 60px;
+      padding: 5px;
+      margin-left: 10px;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
 
 <h1>🥋 Onni BJJ Coach</h1>
 
-<div class="mode-toggle">
-  <label><input type="radio" name="mode" value="roll" checked /> Roll Mode</label>
-  <label><input type="radio" name="mode" value="class" /> Class Mode</label>
+<div>
+  <label>Mode: 
+    <input type="radio" name="mode" value="roll" checked /> Roll 
+    <input type="radio" name="mode" value="class" /> Class
+  </label>
 </div>
 
 <div>
-  <label>Custom Timer (minutes): <input type="number" id="customTime" value="5" min="1" max="60"></label>
+  <label>Timer (minutes): 
+    <input type="number" id="customTime" value="5" min="1" max="60">
+  </label>
+  <label>Rounds: 
+    <input type="number" id="roundsCount" value="3" min="1" max="20">
+  </label>
   <button onclick="startCustomTimer()">▶️ Start</button>
 </div>
 
 <div id="timerDisplay">00:00</div>
+<div>Round: <span id="roundCount">0</span></div>
+
 <div class="timer-buttons">
   <button class="stop-button" onclick="resetAll()">🚩 Stop / Reset</button>
 </div>
 
 <div class="menu">
-  <button onclick="showTechniques('takedown')">Takedown Techniques</button>
-  <button onclick="showTechniques('pass')">Pass Guard Techniques</button>
-  <button onclick="showTechniques('pin')">Pinning Techniques</button>
-  <button onclick="showTechniques('submission')">Submission Techniques</button>
+  <button onclick="showTechniques('takedown')">Takedowns</button>
+  <button onclick="showTechniques('pass')">Passes</button>
+  <button onclick="showTechniques('pin')">Pins</button>
+  <button onclick="showTechniques('submission')">Submissions</button>
 </div>
 
 <div id="output"><em>Select a technique to begin.</em></div>
+
 <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
+<audio id="hardBeep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
 
 <script>
 const techniques = {
   takedown: [
-    "Osoto gari",
-    "Uchi mata",
-    "Single leg takedown",
-    "Double leg takedown",
-    "Arm drag to body lock",
-    "Collar tie snap down",
-    "Tai otoshi",
-    "Harai goshi"
+    "Osoto gari", "Uchi mata", "Single leg takedown", "Double leg takedown", "Arm drag to body lock",
+    "Collar tie snap down", "Tai otoshi", "Harai goshi", "Duck under", "Slide-by takedown"
   ],
   pass: [
-    "Torreando pass",
-    "Leg drag pass",
-    "Knee slice pass",
-    "Over-under pass",
-    "Stack pass",
-    "Double under pass",
-    "X pass"
+    "Torreando pass", "Leg drag pass", "Knee slice pass", "Over-under pass", "Stack pass", "Double under pass", "X pass"
   ],
   pin: [
-    "Side control with crossface",
-    "Kesa gatame",
-    "North-south control",
-    "Mount with grapevines",
-    "Technical mount",
-    "Reverse kesa gatame",
-    "Gift wrap control"
+    "Side control with crossface", "Kesa gatame", "North-south control", "Mount with grapevines", "Technical mount",
+    "Reverse kesa gatame", "Gift wrap control"
   ],
   submission: [
-    "Armbar from mount",
-    "Rear naked choke",
-    "Guillotine choke",
-    "Kimura from side control",
-    "Triangle choke from guard",
-    "Bow and arrow choke",
-    "Omoplata",
-    "Ezekiel choke"
+    "Armbar from mount", "Rear naked choke", "Guillotine choke", "Kimura from side control", "Triangle choke from guard",
+    "Bow and arrow choke", "Omoplata", "Ezekiel choke", "Darce choke", "Anaconda choke", "Straight ankle lock"
   ]
 };
 
 const techniqueDetails = {
-  "Osoto gari": "O-so-to ga-ri. Step to the outside and sweep their leg straight back.",
-  "Uchi mata": "U-chi ma-ta. Lift their inner thigh with your leg and rotate.",
-  "Single leg takedown": "Grab the leg and drive forward, keeping posture low.",
-  "Double leg takedown": "Level change, shoot in, and clasp both legs for the takedown.",
-  "Arm drag to body lock": "Pull their wrist across and secure the waist from behind.",
-  "Collar tie snap down": "Control the head and snap down aggressively, ready to go behind.",
-  "Tai otoshi": "Tie o-to-shi. Throw by blocking the leg and turning the body.",
-  "Harai goshi": "Ha-rai go-shi. Sweep the hip while rotating their upper body.",
-
-  "Torreando pass": "Control the legs and sidestep with speed into side control.",
-  "Leg drag pass": "Drag the leg across and flatten your hips into side control.",
-  "Knee slice pass": "Slice your knee through, controlling the far underhook and collar.",
-  "Over-under pass": "Thread under one leg and over the other, staying tight.",
-  "Stack pass": "Stack their hips and fold them forward with pressure.",
-  "Double under pass": "Lift both legs and slide forward into mount or side control.",
-  "X pass": "Kick one leg out while controlling grips, hop to the side."
+  "Duck under": "Lower your level and step under the arm to take the back.",
+  "Slide-by takedown": "Slide opponent's arm across and circle to the back.",
+  "Darce choke": "Thread your arm deep under the neck and finish with gable grip.",
+  "Anaconda choke": "Roll through with arm trapped, squeeze to finish.",
+  "Straight ankle lock": "Control the ankle and drive hips forward for the tap."
 };
 
 let currentTechniques = [];
 let timerInterval;
+let roundCount = 0;
+let totalRounds = 0;
 
 function showTechniques(type) {
+  resetSpeech();
   const list = techniques[type];
   if (!list || list.length < 2) return;
   let [first, second] = getRandomPair(list);
-
   currentTechniques = [first, second];
-  const title = `${capitalize(type)} Techniques`;
-  document.getElementById('output').innerHTML = `<strong>${title}:</strong><ul>${currentTechniques.map(t => `<li onclick=\"showDetail('${t}')\" style=\"cursor:pointer;text-decoration:underline\">${t}</li>`).join('')}</ul>`;
 
-  // Speak each name and detail separately
-  speak(`${title}.`, 'en');
-  currentTechniques.forEach(t => {
-    if (isJapanese(t)) {
-      speak(t, 'ja');
-    } else {
-      speak(t, 'en');
+  const title = `${capitalize(type)} Techniques`;
+  document.getElementById('output').innerHTML = `<strong>${title}:</strong><ul>${currentTechniques.map(t => `<li onclick="showDetail('${t}')" style="cursor:pointer;text-decoration:underline">${t}</li>`).join('')}</ul>`;
+  speak(`${title}`, 'en');
+}
+
+function showDetail(tech) {
+  resetSpeech();
+  if (isJapanese(tech)) speak(tech, 'ja');
+  speak(techniqueDetails[tech] || "No additional info.", 'en');
+}
+
+function startCustomTimer() {
+  const minutes = parseInt(document.getElementById("customTime").value) || 5;
+  totalRounds = parseInt(document.getElementById("roundsCount").value) || 3;
+  roundCount = 0;
+  runRound(minutes);
+}
+
+function runRound(minutes) {
+  resetSpeech();
+  clearInterval(timerInterval);
+
+  const mode = document.querySelector('input[name="mode"]:checked').value;
+  const display = document.getElementById('timerDisplay');
+  const beep = document.getElementById('beep');
+  const hardBeep = document.getElementById('hardBeep');
+
+  function startCountdown(seconds, onComplete) {
+    let totalSeconds = seconds;
+    timerInterval = setInterval(() => {
+      const min = Math.floor(totalSeconds / 60);
+      const sec = totalSeconds % 60;
+      display.textContent = `${min}:${sec < 10 ? '0' : ''}${sec}`;
+
+      if (totalSeconds <= 10 && totalSeconds > 0) {
+        beep.play();
+      }
+      if (totalSeconds <= 0) {
+        clearInterval(timerInterval);
+        onComplete();
+      }
+      totalSeconds--;
+    }, 1000);
+  }
+
+  function startMainRound(seconds) {
+    let totalSeconds = seconds * 60;
+    roundCount++;
+    document.getElementById('roundCount').textContent = roundCount;
+    speak(mode === "roll" ? "Start the roll." : "Start drilling.", 'en');
+    beep.play();
+
+    timerInterval = setInterval(() => {
+      const min = Math.floor(totalSeconds / 60);
+      const sec = totalSeconds % 60;
+      display.textContent = `${min}:${sec < 10 ? '0' : ''}${sec}`;
+
+      if (totalSeconds === 60) {
+        hardBeep.play();
+        speak("Breathe, breathe", 'en');
+      }
+
+      if (totalSeconds === 1) {
+        hardBeep.play();
+      }
+
+      if (totalSeconds <= 0) {
+        clearInterval(timerInterval);
+        display.textContent = "⏱ Time's up!";
+        setTimeout(() => speak("Time!", 'en'), 800);
+        if (roundCount < totalRounds) {
+          if (mode === "roll") {
+            setTimeout(() => {
+              speak("One minute rest.", 'en');
+              runRest(minutes);
+            }, 1000);
+          } else {
+            setTimeout(() => runRound(minutes), 1000);
+          }
+        }
+        return;
+      }
+      totalSeconds--;
+    }, 1000);
+  }
+
+  if (mode === "roll") {
+    speak("Get ready. Ten second countdown.", 'en');
+    startCountdown(10, () => startMainRound(minutes));
+  } else {
+    startMainRound(minutes);
+  }
+}
+
+function runRest(nextMinutes) {
+  let restSeconds = 60;
+  const display = document.getElementById('timerDisplay');
+  const beep = document.getElementById('beep');
+  const hardBeep = document.getElementById('hardBeep');
+
+  timerInterval = setInterval(() => {
+    const min = Math.floor(restSeconds / 60);
+    const sec = restSeconds % 60;
+    display.textContent = `Rest: ${min}:${sec < 10 ? '0' : ''}${sec}`;
+
+    if (restSeconds <= 10 && restSeconds > 0) {
+      beep.play();
     }
-    speak(techniqueDetails[t] || '', 'en');
-  });
+    if (restSeconds <= 0) {
+      clearInterval(timerInterval);
+      setTimeout(() => runRound(nextMinutes), 500);
+    }
+    restSeconds--;
+  }, 1000);
+}
+
+function resetAll() {
+  resetSpeech();
+  clearInterval(timerInterval);
+  document.getElementById('output').innerHTML = "<em>Select a technique to begin.</em>";
+  document.getElementById('timerDisplay').textContent = "00:00";
+  currentTechniques = [];
+  roundCount = 0;
+  totalRounds = 0;
+  document.getElementById('roundCount').textContent = "0";
+}
+
+function speak(text, lang = 'en') {
+  if (!text) return;
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = lang === 'ja' ? 'ja-JP' : 'en-US';
+  utter.pitch = 1;
+  utter.rate = 0.95;
+  const voices = speechSynthesis.getVoices();
+  const voice = voices.find(v => lang === 'ja' ? v.lang.startsWith('ja') : v.lang.startsWith('en'));
+  if (voice) utter.voice = voice;
+  speechSynthesis.speak(utter);
+}
+
+function resetSpeech() {
+  speechSynthesis.cancel();
 }
 
 function getRandomPair(list) {
@@ -190,80 +289,8 @@ function getRandomPair(list) {
   return [first, second];
 }
 
-function showDetail(tech) {
-  if (isJapanese(tech)) {
-    speak(tech, 'ja');
-  } else {
-    speak(tech, 'en');
-  }
-  speak(techniqueDetails[tech] || "No additional info.", 'en');
-}
-
 function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-function startCustomTimer() {
-  const minutes = parseInt(document.getElementById("customTime").value) || 5;
-  startTimer(minutes);
-}
-
-function startTimer(minutes) {
-  clearInterval(timerInterval);
-  let totalSeconds = minutes * 60;
-  const timerDisplay = document.getElementById('timerDisplay');
-  const mode = document.querySelector('input[name="mode"]:checked').value;
-  const beep = document.getElementById('beep');
-
-  let modeSpeech = mode === "roll" ? "Start the roll." : "Start drilling.";
-  speak(modeSpeech, 'en');
-  beep.play();
-
-  currentTechniques.forEach(t => {
-    if (isJapanese(t)) {
-      speak(t, 'ja');
-    } else {
-      speak(t, 'en');
-    }
-    speak(techniqueDetails[t] || '', 'en');
-  });
-
-  timerInterval = setInterval(() => {
-    const min = Math.floor(totalSeconds / 60);
-    const sec = totalSeconds % 60;
-    timerDisplay.textContent = `${min}:${sec < 10 ? '0' : ''}${sec}`;
-
-    if (totalSeconds === 60) speak("One minute left. Keep pushing!", 'en');
-    if (totalSeconds <= 0) {
-      clearInterval(timerInterval);
-      speak("Time!", 'en');
-      beep.play();
-      timerDisplay.textContent = "⏱ Time's up!";
-    }
-    totalSeconds--;
-  }, 1000);
-}
-
-function resetAll() {
-  document.getElementById('output').innerHTML = "<em>Select a technique to begin.</em>";
-  document.getElementById('timerDisplay').textContent = "00:00";
-  clearInterval(timerInterval);
-  currentTechniques = [];
-  speechSynthesis.cancel();
-}
-
-// Speak with language switching for Japanese terms
-function speak(text, lang = 'en') {
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = lang === 'ja' ? 'ja-JP' : 'en-US';
-  utter.pitch = 1;
-  utter.rate = 0.95;
-
-  const voices = speechSynthesis.getVoices();
-  const voice = voices.find(v => lang === 'ja' ? v.lang.startsWith('ja') : v.lang.startsWith('en'));
-  if (voice) utter.voice = voice;
-
-  speechSynthesis.speak(utter);
 }
 
 function isJapanese(text) {
@@ -273,4 +300,5 @@ function isJapanese(text) {
 
 </body>
 </html>
+
 
