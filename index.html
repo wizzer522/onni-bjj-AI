@@ -6,63 +6,64 @@
 <title>Onni BJJ Coach</title>
 <style>
 body {
-font-family: 'Segoe UI', sans-serif;
-background-color: #1e1e2f;
-color: white;
-text-align: center;
-padding: 30px;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #1e1e2f;
+  color: white;
+  text-align: center;
+  padding: 30px;
 }
-
 h1 {
-margin-bottom: 20px;
+  margin-bottom: 20px;
 }
-
 #timerDisplay {
-font-size: 4rem;
-margin: 10px 0;
-font-weight: bold;
+  font-size: 4rem;
+  margin: 10px 0;
+  font-weight: bold;
 }
-
 .timer-buttons {
-display: flex;
-justify-content: center;
-gap: 10px;
-margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
 }
-
 .menu {
-margin: 20px auto;
-display: flex;
-flex-direction: column;
-gap: 10px;
-max-width: 300px;
+  margin: 20px auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 300px;
 }
-
 button {
-padding: 12px;
-font-size: 1rem;
-border: none;
-border-radius: 6px;
-cursor: pointer;
-background-color: #3a3af0;
-color: white;
-transition: background 0.2s ease;
+  padding: 12px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background-color: #3a3af0;
+  color: white;
+  transition: background 0.2s ease;
 }
-
 button:hover {
-background-color: #5f5fff;
+  background-color: #5f5fff;
 }
-
 .stop-button {
-background-color: crimson;
+  background-color: crimson;
 }
-
 #output {
-background: #2e2e40;
-border-radius: 8px;
-padding: 20px;
-margin-top: 20px;
-min-height: 100px;
+  background: #2e2e40;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+  min-height: 100px;
+}
+.mode-toggle {
+  margin-bottom: 20px;
+}
+input[type="number"] {
+  width: 60px;
+  padding: 5px;
+  margin-left: 10px;
+  text-align: center;
 }
 </style>
 </head>
@@ -70,106 +71,206 @@ min-height: 100px;
 
 <h1>🥋 Onni BJJ Coach</h1>
 
-<!-- TOP TIMER SECTION -->
+<div class="mode-toggle">
+  <label><input type="radio" name="mode" value="roll" checked /> Roll Mode</label>
+  <label><input type="radio" name="mode" value="class" /> Class Mode</label>
+</div>
+
+<div>
+  <label>Custom Timer (minutes): <input type="number" id="customTime" value="5" min="1" max="60"></label>
+  <button onclick="startCustomTimer()">▶️ Start</button>
+</div>
+
 <div id="timerDisplay">00:00</div>
 <div class="timer-buttons">
-<button onclick="startTimer(5)">▶️ Start 5-Minute Timer</button>
-<button class="stop-button" onclick="resetAll()">🛑 Stop / Reset</button>
+  <button class="stop-button" onclick="resetAll()">🚩 Stop / Reset</button>
 </div>
 
-<!-- TECHNIQUE MENU -->
 <div class="menu">
-<button onclick="showTechniques('takedown')">Takedown Techniques</button>
-<button onclick="showTechniques('pass')">Pass Guard Techniques</button>
-<button onclick="showTechniques('pin')">Pinning Techniques</button>
-<button onclick="showTechniques('submission')">Submission Techniques</button>
+  <button onclick="showTechniques('takedown')">Takedown Techniques</button>
+  <button onclick="showTechniques('pass')">Pass Guard Techniques</button>
+  <button onclick="showTechniques('pin')">Pinning Techniques</button>
+  <button onclick="showTechniques('submission')">Submission Techniques</button>
 </div>
 
-<!-- TECHNIQUE OUTPUT -->
 <div id="output"><em>Select a technique to begin.</em></div>
+<audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
 
 <script>
 const techniques = {
-takedown: [
-"Snap down to go behind",
-"Osoto gari",
-"Single leg takedown",
-"Russian tie to double leg"
-],
-pass: [
-"Torreando pass",
-"Leg drag pass",
-"Knee cut pass",
-"Over-under pass"
-],
-pin: [
-"Side control with crossface",
-"Kesa gatame",
-"North-south control",
-"Mount control with grapevines"
-],
-submission: [
-"Armbar from mount",
-"Rear naked choke",
-"Guillotine choke",
-"Kimura from side control"
-]
+  takedown: [
+    "Osoto gari",
+    "Uchi mata",
+    "Single leg takedown",
+    "Double leg takedown",
+    "Arm drag to body lock",
+    "Collar tie snap down",
+    "Tai otoshi",
+    "Harai goshi"
+  ],
+  pass: [
+    "Torreando pass",
+    "Leg drag pass",
+    "Knee slice pass",
+    "Over-under pass",
+    "Stack pass",
+    "Double under pass",
+    "X pass"
+  ],
+  pin: [
+    "Side control with crossface",
+    "Kesa gatame",
+    "North-south control",
+    "Mount with grapevines",
+    "Technical mount",
+    "Reverse kesa gatame",
+    "Gift wrap control"
+  ],
+  submission: [
+    "Armbar from mount",
+    "Rear naked choke",
+    "Guillotine choke",
+    "Kimura from side control",
+    "Triangle choke from guard",
+    "Bow and arrow choke",
+    "Omoplata",
+    "Ezekiel choke"
+  ]
 };
 
+const techniqueDetails = {
+  "Osoto gari": "O-so-to ga-ri. Step to the outside and sweep their leg straight back.",
+  "Uchi mata": "U-chi ma-ta. Lift their inner thigh with your leg and rotate.",
+  "Single leg takedown": "Grab the leg and drive forward, keeping posture low.",
+  "Double leg takedown": "Level change, shoot in, and clasp both legs for the takedown.",
+  "Arm drag to body lock": "Pull their wrist across and secure the waist from behind.",
+  "Collar tie snap down": "Control the head and snap down aggressively, ready to go behind.",
+  "Tai otoshi": "Tie o-to-shi. Throw by blocking the leg and turning the body.",
+  "Harai goshi": "Ha-rai go-shi. Sweep the hip while rotating their upper body.",
+
+  "Torreando pass": "Control the legs and sidestep with speed into side control.",
+  "Leg drag pass": "Drag the leg across and flatten your hips into side control.",
+  "Knee slice pass": "Slice your knee through, controlling the far underhook and collar.",
+  "Over-under pass": "Thread under one leg and over the other, staying tight.",
+  "Stack pass": "Stack their hips and fold them forward with pressure.",
+  "Double under pass": "Lift both legs and slide forward into mount or side control.",
+  "X pass": "Kick one leg out while controlling grips, hop to the side."
+};
+
+let currentTechniques = [];
+let timerInterval;
+
 function showTechniques(type) {
-const output = document.getElementById('output');
-const list = techniques[type];
-const title = `${capitalize(type)} Techniques`;
-output.innerHTML = `<strong>${title}:</strong><ul>${list.map(t => `<li>${t}</li>`).join('')}</ul>`;
-speak(title);
+  const list = techniques[type];
+  if (!list || list.length < 2) return;
+  let [first, second] = getRandomPair(list);
+
+  currentTechniques = [first, second];
+  const title = `${capitalize(type)} Techniques`;
+  document.getElementById('output').innerHTML = `<strong>${title}:</strong><ul>${currentTechniques.map(t => `<li onclick=\"showDetail('${t}')\" style=\"cursor:pointer;text-decoration:underline\">${t}</li>`).join('')}</ul>`;
+
+  // Speak each name and detail separately
+  speak(`${title}.`, 'en');
+  currentTechniques.forEach(t => {
+    if (isJapanese(t)) {
+      speak(t, 'ja');
+    } else {
+      speak(t, 'en');
+    }
+    speak(techniqueDetails[t] || '', 'en');
+  });
+}
+
+function getRandomPair(list) {
+  let first = list[Math.floor(Math.random() * list.length)];
+  let second;
+  do {
+    second = list[Math.floor(Math.random() * list.length)];
+  } while (second === first);
+  return [first, second];
+}
+
+function showDetail(tech) {
+  if (isJapanese(tech)) {
+    speak(tech, 'ja');
+  } else {
+    speak(tech, 'en');
+  }
+  speak(techniqueDetails[tech] || "No additional info.", 'en');
 }
 
 function capitalize(str) {
-return str.charAt(0).toUpperCase() + str.slice(1);
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-let timerInterval;
+function startCustomTimer() {
+  const minutes = parseInt(document.getElementById("customTime").value) || 5;
+  startTimer(minutes);
+}
 
 function startTimer(minutes) {
-clearInterval(timerInterval);
-let totalSeconds = minutes * 60;
-const timerDisplay = document.getElementById('timerDisplay');
+  clearInterval(timerInterval);
+  let totalSeconds = minutes * 60;
+  const timerDisplay = document.getElementById('timerDisplay');
+  const mode = document.querySelector('input[name="mode"]:checked').value;
+  const beep = document.getElementById('beep');
 
-timerInterval = setInterval(() => {
-const min = Math.floor(totalSeconds / 60);
-const sec = totalSeconds % 60;
-timerDisplay.textContent = `${min}:${sec < 10 ? '0' : ''}${sec}`;
+  let modeSpeech = mode === "roll" ? "Start the roll." : "Start drilling.";
+  speak(modeSpeech, 'en');
+  beep.play();
 
-if (totalSeconds === 60) {
-speak("One minute left. Breathe. Leave it all on the mat!");
-}
+  currentTechniques.forEach(t => {
+    if (isJapanese(t)) {
+      speak(t, 'ja');
+    } else {
+      speak(t, 'en');
+    }
+    speak(techniqueDetails[t] || '', 'en');
+  });
 
-if (totalSeconds <= 0) {
-clearInterval(timerInterval);
-speak("Time!");
-timerDisplay.textContent = "⏱ Time's up!";
-}
+  timerInterval = setInterval(() => {
+    const min = Math.floor(totalSeconds / 60);
+    const sec = totalSeconds % 60;
+    timerDisplay.textContent = `${min}:${sec < 10 ? '0' : ''}${sec}`;
 
-totalSeconds--;
-}, 1000);
+    if (totalSeconds === 60) speak("One minute left. Keep pushing!", 'en');
+    if (totalSeconds <= 0) {
+      clearInterval(timerInterval);
+      speak("Time!", 'en');
+      beep.play();
+      timerDisplay.textContent = "⏱ Time's up!";
+    }
+    totalSeconds--;
+  }, 1000);
 }
 
 function resetAll() {
-document.getElementById('output').innerHTML = "<em>Select a technique to begin.</em>";
-document.getElementById('timerDisplay').textContent = "00:00";
-clearInterval(timerInterval);
-speechSynthesis.cancel();
+  document.getElementById('output').innerHTML = "<em>Select a technique to begin.</em>";
+  document.getElementById('timerDisplay').textContent = "00:00";
+  clearInterval(timerInterval);
+  currentTechniques = [];
+  speechSynthesis.cancel();
 }
 
-function speak(text) {
-const utter = new SpeechSynthesisUtterance(text);
-utter.pitch = 1;
-utter.rate = 1;
-utter.lang = 'en-US';
-speechSynthesis.cancel(); // stop any ongoing voice
-speechSynthesis.speak(utter);
+// Speak with language switching for Japanese terms
+function speak(text, lang = 'en') {
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = lang === 'ja' ? 'ja-JP' : 'en-US';
+  utter.pitch = 1;
+  utter.rate = 0.95;
+
+  const voices = speechSynthesis.getVoices();
+  const voice = voices.find(v => lang === 'ja' ? v.lang.startsWith('ja') : v.lang.startsWith('en'));
+  if (voice) utter.voice = voice;
+
+  speechSynthesis.speak(utter);
+}
+
+function isJapanese(text) {
+  return ["Osoto gari", "Uchi mata", "Tai otoshi", "Harai goshi", "Kesa gatame", "Reverse kesa gatame"].some(name => text.includes(name));
 }
 </script>
 
 </body>
 </html>
+
