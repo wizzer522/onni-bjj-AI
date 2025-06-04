@@ -16,8 +16,8 @@
       margin-bottom: 10px;
     }
     #timerDisplay {
-      font-size: 4rem;
-      margin: 10px 0;
+      font-size: 5rem;
+      margin: 20px 0;
       font-weight: bold;
     }
     .timer-buttons, .menu {
@@ -43,7 +43,7 @@
     .stop-button {
       background-color: crimson;
     }
-    #output {
+    #output, #history {
       background: #2e2e40;
       border-radius: 8px;
       padding: 20px;
@@ -60,7 +60,7 @@
 </head>
 <body>
 
-<h1>🥋 Onni BJJ Coach</h1>
+<h1>Onni BJJ Coach</h1>
 
 <div>
   <label>Mode: 
@@ -72,9 +72,6 @@
 <div>
   <label>Timer (minutes): 
     <input type="number" id="customTime" value="5" min="1" max="60">
-  </label>
-  <label>Rounds: 
-    <input type="number" id="roundsCount" value="3" min="1" max="20">
   </label>
   <button onclick="startCustomTimer()">▶️ Start</button>
 </div>
@@ -91,44 +88,93 @@
   <button onclick="showTechniques('pass')">Passes</button>
   <button onclick="showTechniques('pin')">Pins</button>
   <button onclick="showTechniques('submission')">Submissions</button>
+  <button onclick="showTechniques('sweep')">Sweeps</button>
+  <button onclick="showTechniques('scramble')">Scrambles</button>
 </div>
 
 <div id="output"><em>Select a technique to begin.</em></div>
+<div id="history"><strong>Session History:</strong><ul id="sessionList"></ul></div>
 
 <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
-<audio id="hardBeep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
 
 <script>
 const techniques = {
-  takedown: [
-    "Osoto gari", "Uchi mata", "Single leg takedown", "Double leg takedown", "Arm drag to body lock",
-    "Collar tie snap down", "Tai otoshi", "Harai goshi", "Duck under", "Slide-by takedown"
-  ],
-  pass: [
-    "Torreando pass", "Leg drag pass", "Knee slice pass", "Over-under pass", "Stack pass", "Double under pass", "X pass"
-  ],
-  pin: [
-    "Side control with crossface", "Kesa gatame", "North-south control", "Mount with grapevines", "Technical mount",
-    "Reverse kesa gatame", "Gift wrap control"
-  ],
-  submission: [
-    "Armbar from mount", "Rear naked choke", "Guillotine choke", "Kimura from side control", "Triangle choke from guard",
-    "Bow and arrow choke", "Omoplata", "Ezekiel choke", "Darce choke", "Anaconda choke", "Straight ankle lock"
-  ]
-};
-
-const techniqueDetails = {
-  "Duck under": "Lower your level and step under the arm to take the back.",
-  "Slide-by takedown": "Slide opponent's arm across and circle to the back.",
-  "Darce choke": "Thread your arm deep under the neck and finish with gable grip.",
-  "Anaconda choke": "Roll through with arm trapped, squeeze to finish.",
-  "Straight ankle lock": "Control the ankle and drive hips forward for the tap."
+  takedown: ["Osoto gari", "Uchi mata", "Single leg", "Double leg", "Tai otoshi"],
+  pass: ["Knee slice", "Leg drag", "Torreando", "Over-under", "Stack pass"],
+  pin: ["Side control", "Kesa gatame", "North-south", "Mount", "Technical mount"],
+  submission: ["Armbar", "RNC", "Triangle", "Kimura", "Guillotine"],
+  sweep: ["Scissor", "Hip bump", "Flower", "X-guard", "Lumberjack"],
+  scramble: ["Peterson roll", "Granby roll", "Sit through", "Switch base", "Dogfight wrestle-up"]
 };
 
 let currentTechniques = [];
-let timerInterval;
+let timerInterval, techniqueInterval;
 let roundCount = 0;
-let totalRounds = 0;
+let sessionHistory = [];
+
+function startCustomTimer() {
+  const minutes = parseInt(document.getElementById("customTime").value) || 5;
+  startTimer(minutes);
+}
+
+function startTimer(minutes) {
+  resetSpeech();
+  clearInterval(timerInterval);
+  clearInterval(techniqueInterval);
+
+  let totalSeconds = minutes * 60;
+  const display = document.getElementById('timerDisplay');
+  const beep = document.getElementById('beep');
+  const mode = document.querySelector('input[name="mode"]:checked').value;
+
+  roundCount++;
+  document.getElementById('roundCount').textContent = roundCount;
+
+  speak(mode === "roll" ? "Start the roll." : "Start drilling.", 'en');
+  beep.play();
+
+  rotateTechniques();
+  techniqueInterval = setInterval(rotateTechniques, 30 * 1000);
+
+  timerInterval = setInterval(() => {
+    if (totalSeconds <= 0) {
+      clearInterval(timerInterval);
+      clearInterval(techniqueInterval);
+      display.textContent = "";
+      speak("Time!", 'en');
+      beep.play();
+      saveSession();
+      return;
+    }
+
+    const min = Math.floor(totalSeconds / 60);
+    const sec = totalSeconds % 60;
+    display.textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+
+    if (totalSeconds === 60) speak("One minute left. Keep pushing!", 'en');
+
+    totalSeconds--;
+  }, 1000);
+}
+
+function resetAll() {
+  resetSpeech();
+  clearInterval(timerInterval);
+  clearInterval(techniqueInterval);
+  document.getElementById('output').innerHTML = "<em>Select a technique to begin.</em>";
+  document.getElementById('timerDisplay').textContent = "00:00";
+  currentTechniques = [];
+  roundCount = 0;
+  sessionHistory = [];
+  document.getElementById('roundCount').textContent = "0";
+  document.getElementById('sessionList').innerHTML = "";
+}
+
+function rotateTechniques() {
+  const categories = Object.keys(techniques);
+  const type = categories[Math.floor(Math.random() * categories.length)];
+  showTechniques(type);
+}
 
 function showTechniques(type) {
   resetSpeech();
@@ -137,147 +183,20 @@ function showTechniques(type) {
   let [first, second] = getRandomPair(list);
   currentTechniques = [first, second];
 
-  const title = `${capitalize(type)} Techniques`;
-  document.getElementById('output').innerHTML = `<strong>${title}:</strong><ul>${currentTechniques.map(t => `<li onclick="showDetail('${t}')" style="cursor:pointer;text-decoration:underline">${t}</li>`).join('')}</ul>`;
-  speak(`${title}`, 'en');
+  const title = `${type[0].toUpperCase() + type.slice(1)} Techniques`;
+  document.getElementById('output').innerHTML = `<strong>${title}:</strong><ul><li>${first}</li><li>${second}</li></ul>`;
 }
 
-function showDetail(tech) {
-  resetSpeech();
-  if (isJapanese(tech)) speak(tech, 'ja');
-  speak(techniqueDetails[tech] || "No additional info.", 'en');
-}
-
-function startCustomTimer() {
-  const minutes = parseInt(document.getElementById("customTime").value) || 5;
-  totalRounds = parseInt(document.getElementById("roundsCount").value) || 3;
-  roundCount = 0;
-  runRound(minutes);
-}
-
-function runRound(minutes) {
-  resetSpeech();
-  clearInterval(timerInterval);
-
-  const mode = document.querySelector('input[name="mode"]:checked').value;
-  const display = document.getElementById('timerDisplay');
-  const beep = document.getElementById('beep');
-  const hardBeep = document.getElementById('hardBeep');
-
-  function startCountdown(seconds, onComplete) {
-    let totalSeconds = seconds;
-    timerInterval = setInterval(() => {
-      const min = Math.floor(totalSeconds / 60);
-      const sec = totalSeconds % 60;
-      display.textContent = `${min}:${sec < 10 ? '0' : ''}${sec}`;
-
-      if (totalSeconds <= 10 && totalSeconds > 0) {
-        beep.play();
-      }
-      if (totalSeconds <= 0) {
-        clearInterval(timerInterval);
-        onComplete();
-      }
-      totalSeconds--;
-    }, 1000);
-  }
-
-  function startMainRound(seconds) {
-    let totalSeconds = seconds * 60;
-    roundCount++;
-    document.getElementById('roundCount').textContent = roundCount;
-    speak(mode === "roll" ? "Start the roll." : "Start drilling.", 'en');
-    beep.play();
-
-    timerInterval = setInterval(() => {
-      const min = Math.floor(totalSeconds / 60);
-      const sec = totalSeconds % 60;
-      display.textContent = `${min}:${sec < 10 ? '0' : ''}${sec}`;
-
-      if (totalSeconds === 60) {
-        hardBeep.play();
-        speak("Breathe, breathe", 'en');
-      }
-
-      if (totalSeconds === 1) {
-        hardBeep.play();
-      }
-
-      if (totalSeconds <= 0) {
-        clearInterval(timerInterval);
-        display.textContent = "⏱ Time's up!";
-        setTimeout(() => speak("Time!", 'en'), 800);
-        if (roundCount < totalRounds) {
-          if (mode === "roll") {
-            setTimeout(() => {
-              speak("One minute rest.", 'en');
-              runRest(minutes);
-            }, 1000);
-          } else {
-            setTimeout(() => runRound(minutes), 1000);
-          }
-        }
-        return;
-      }
-      totalSeconds--;
-    }, 1000);
-  }
-
-  if (mode === "roll") {
-    speak("Get ready. Ten second countdown.", 'en');
-    startCountdown(10, () => startMainRound(minutes));
-  } else {
-    startMainRound(minutes);
-  }
-}
-
-function runRest(nextMinutes) {
-  let restSeconds = 60;
-  const display = document.getElementById('timerDisplay');
-  const beep = document.getElementById('beep');
-  const hardBeep = document.getElementById('hardBeep');
-
-  timerInterval = setInterval(() => {
-    const min = Math.floor(restSeconds / 60);
-    const sec = restSeconds % 60;
-    display.textContent = `Rest: ${min}:${sec < 10 ? '0' : ''}${sec}`;
-
-    if (restSeconds <= 10 && restSeconds > 0) {
-      beep.play();
-    }
-    if (restSeconds <= 0) {
-      clearInterval(timerInterval);
-      setTimeout(() => runRound(nextMinutes), 500);
-    }
-    restSeconds--;
-  }, 1000);
-}
-
-function resetAll() {
-  resetSpeech();
-  clearInterval(timerInterval);
-  document.getElementById('output').innerHTML = "<em>Select a technique to begin.</em>";
-  document.getElementById('timerDisplay').textContent = "00:00";
-  currentTechniques = [];
-  roundCount = 0;
-  totalRounds = 0;
-  document.getElementById('roundCount').textContent = "0";
-}
-
-function speak(text, lang = 'en') {
-  if (!text) return;
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = lang === 'ja' ? 'ja-JP' : 'en-US';
-  utter.pitch = 1;
-  utter.rate = 0.95;
-  const voices = speechSynthesis.getVoices();
-  const voice = voices.find(v => lang === 'ja' ? v.lang.startsWith('ja') : v.lang.startsWith('en'));
-  if (voice) utter.voice = voice;
-  speechSynthesis.speak(utter);
-}
-
-function resetSpeech() {
-  speechSynthesis.cancel();
+function saveSession() {
+  const roundData = {
+    round: roundCount,
+    techniques: [...currentTechniques]
+  };
+  sessionHistory.push(roundData);
+  const list = document.getElementById('sessionList');
+  const li = document.createElement('li');
+  li.textContent = `Round ${roundData.round}: ${roundData.techniques.join(', ')}`;
+  list.appendChild(li);
 }
 
 function getRandomPair(list) {
@@ -289,16 +208,25 @@ function getRandomPair(list) {
   return [first, second];
 }
 
-function capitalize(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
+function speak(text, lang = 'en') {
+  if (!text) return;
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = lang === 'ja' ? 'ja-JP' : 'en-US';
+  utter.pitch = 1;
+  utter.rate = 0.95;
+
+  const voices = speechSynthesis.getVoices();
+  const voice = voices.find(v => lang === 'ja' ? v.lang.startsWith('ja') : v.lang.startsWith('en'));
+  if (voice) utter.voice = voice;
+
+  speechSynthesis.speak(utter);
 }
 
-function isJapanese(text) {
-  return ["Osoto gari", "Uchi mata", "Tai otoshi", "Harai goshi", "Kesa gatame", "Reverse kesa gatame"].some(name => text.includes(name));
+function resetSpeech() {
+  speechSynthesis.cancel();
 }
 </script>
 
 </body>
 </html>
-
 
