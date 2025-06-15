@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Onni BJJ timer</title>
+  <title>Onni BJJ Coach</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -15,53 +15,16 @@
       background-attachment: fixed;
       color: white;
     }
-
     .overlay {
       background: rgba(0, 0, 0, 0.75);
       min-height: 100vh;
       padding: 30px;
     }
-
     h1 {
       text-align: center;
       margin-bottom: 10px;
       font-size: 2.5rem;
     }
-
-    #timerDisplay {
-      font-size: 8rem;
-      margin: 20px 0;
-      font-weight: bold;
-      text-align: center;
-    }
-
-    .timer-buttons, .menu {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-
-    button {
-      padding: 12px 18px;
-      font-size: 1rem;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      background-color: rgba(0, 123, 255, 0.8);
-      color: white;
-      transition: background 0.3s ease;
-    }
-
-    button:hover {
-      background-color: rgba(0, 123, 255, 1);
-    }
-
-    .stop-button {
-      background-color: crimson;
-    }
-
     .glass-box {
       background: rgba(255, 255, 255, 0.1);
       border-radius: 12px;
@@ -71,236 +34,213 @@
       margin: 20px auto;
       max-width: 800px;
     }
-
-    input[type="number"] {
-      width: 60px;
-      padding: 5px;
-      margin-left: 10px;
-      text-align: center;
+    .menu {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
     }
-
+    button {
+      padding: 10px 16px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background-color: rgba(0, 123, 255, 0.8);
+      color: white;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background-color: rgba(0, 123, 255, 1);
+    }
+    li {
+      padding: 10px;
+      margin: 4px 0;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      transition: background 0.2s ease;
+    }
+    li:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+    li.clicked {
+      animation: flash 0.3s ease;
+    }
+    @keyframes flash {
+      0% { background-color: #4caf50; }
+      100% { background-color: rgba(255, 255, 255, 0.05); }
+    }
     ul {
       list-style: none;
-      padding: 0;
+      padding-left: 0;
     }
-
-    li {
-      padding: 4px 0;
+    .timer-box {
+      text-align: center;
+      margin-top: 20px;
     }
-
-    label {
-      margin-right: 15px;
+    #timer {
+      font-size: 5rem;
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
+  <div class="overlay">
+    <h1>🥋 Onni BJJ Coach 🤼</h1>
 
-<div class="overlay">
-  <h1>🥋 Onni BJJ Coach 🤼</h1>
+    <div class="menu glass-box">
+      <button onclick="showTechniques('grip')">Grip Fighting</button>
+      <button onclick="showTechniques('takedown')">Takedowns</button>
+      <button onclick="showTechniques('pass')">Passes</button>
+      <button onclick="showTechniques('pin')">Pins</button>
+      <button onclick="showTechniques('submission')">Submissions</button>
+      <button onclick="showTechniques('sweep')">Sweeps</button>
+      <button onclick="showTechniques('scramble')">Scrambles</button>
+    </div>
 
-  <div class="glass-box">
-    <label>Rounds: 
-      <input type="number" id="roundsInput" value="3" min="1" max="20">
-    </label>
-    <label>Minutes per round: 
-      <input type="number" id="customTime" value="5" min="1" max="60">
-    </label>
-    <button onclick="startSession()">▶️ Start Session</button>
+    <div class="glass-box timer-box">
+      <div id="timer">05:00</div>
+      <button onclick="startTimer()">Start</button>
+      <button onclick="pauseTimer()">Pause</button>
+      <button onclick="resetTimer()">Reset</button>
+    </div>
+
+    <div id="output" class="glass-box"><em>Select a technique to begin.</em></div>
+    <div id="history" class="glass-box">
+      <strong>🧠 Onni's Section:</strong>
+      <ul id="sessionList"></ul>
+    </div>
   </div>
-
-  <div id="timerDisplay">00:00</div>
-  <div style="text-align:center;">Round: <span id="roundCount">0</span></div>
-
-  <div class="timer-buttons">
-    <button class="stop-button" onclick="resetAll()">🚩 Stop / Reset</button>
-  </div>
-
-  <div class="menu glass-box">
-    <button onclick="showTechniques('takedown')">Takedowns</button>
-    <button onclick="showTechniques('pass')">Passes</button>
-    <button onclick="showTechniques('pin')">Pins</button>
-    <button onclick="showTechniques('submission')">Submissions</button>
-    <button onclick="showTechniques('sweep')">Sweeps</button>
-    <button onclick="showTechniques('scramble')">Scrambles</button>
-  </div>
-
-  <div id="output" class="glass-box"><em>Select a technique to begin.</em></div>
-  <div id="history" class="glass-box">
-    <strong>Session History:</strong>
-    <ul id="sessionList"></ul>
-  </div>
-
-  <audio id="beep" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" preload="auto"></audio>
-  <audio id="buzzer" src="https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg" preload="auto"></audio>
-</div>
 
 <script>
 const techniques = {
-  takedown: ["Osoto gari", "Uchi mata", "Single leg", "Double leg", "Tai otoshi"],
-  pass: ["Knee slice", "Leg drag", "Torreando", "Over-under", "Stack pass"],
-  pin: ["Side control", "Kesa gatame", "North-south", "Mount", "Technical mount"],
-  submission: ["Armbar", "RNC", "Triangle", "Kimura", "Guillotine"],
-  sweep: ["Scissor", "Hip bump", "Flower", "X-guard", "Lumberjack"],
-  scramble: ["Peterson roll", "Granby roll", "Sit through", "Switch base", "Dogfight wrestle-up"]
+  grip: [
+    ["Collar tie", "🤼"], ["Two on one (Russian tie)", "🤼"], ["Inside tie", "🤼"],
+    ["Overhook", "🤼"], ["Underhook", "🤼"], ["Armdrag grip", "🥋"], ["Cross collar grip", "🥋"]
+  ],
+  takedown: [
+    ["Osoto gari", "🥋"], ["Uchi mata", "🥋"], ["Single leg", "🤼"],
+    ["Double leg", "🤼"], ["Lat drop", "🤼"]
+  ],
+  pass: [
+    ["Knee slice", "🥋"], ["Leg drag", "🥋"], ["Torreando", "🥋"],
+    ["Over-under", "🥋"], ["Cartwheel pass", "🤼"]
+  ],
+  pin: [
+    ["Side control", "🥋"], ["Kesa gatame", "🥋"], ["North-south", "🥋"],
+    ["Mount", "🥋"], ["Technical mount", "🥋"]
+  ],
+  submission: [
+    ["Armbar", "🥋"], ["RNC", "🤼"], ["Triangle", "🥋"],
+    ["Kimura", "🥋"], ["Guillotine", "🤼"]
+  ],
+  sweep: [
+    ["Scissor sweep", "🥋"], ["Hip bump sweep", "🥋"], ["Flower sweep", "🥋"],
+    ["X-guard sweep", "🥋"], ["Lumberjack sweep", "🥋"]
+  ],
+  scramble: [
+    ["Steamroller (Peterson Roll)", "🤼"], ["Granby roll", "🤼"],
+    ["Sit through", "🤼"], ["Switch base", "🤼"], ["Dogfight wrestle-up", "🤼"]
+  ]
 };
 
-let currentTechniques = [];
-let timerInterval, techniqueInterval;
-let roundCount = 0;
-let totalRounds = 0;
-let roundMinutes = 5;
-let isRest = false;
-let sessionHistory = [];
+const sessionTracker = {
+  grip: [], takedown: [], pin: [], submission: [], other: []
+};
 
-function startSession() {
-  totalRounds = parseInt(document.getElementById("roundsInput").value) || 3;
-  roundMinutes = parseInt(document.getElementById("customTime").value) || 5;
-  roundCount = 0;
-  startPreCountdown();
+function showTechniques(category) {
+  const list = techniques[category];
+  if (!list) return;
+
+  const output = document.getElementById('output');
+  output.innerHTML = `<strong>${capitalize(category)} Techniques:</strong><ul>` +
+    list.map(([name, icon]) =>
+      `<li onclick="addToSession('${category}','${name}', this)">${icon} ${name}</li>`
+    ).join('') + '</ul>';
 }
 
-function startPreCountdown() {
-  resetSpeech();
-  const display = document.getElementById('timerDisplay');
-  let preCount = 10;
-  speak("Get ready! 10 seconds...", 'en');
+function addToSession(type, name, element) {
+  element.classList.add("clicked");
+  setTimeout(() => element.classList.remove("clicked"), 300);
 
-  const preTimer = setInterval(() => {
-    display.textContent = `00:${String(preCount).padStart(2, '0')}`;
-    if (preCount <= 3) speak(preCount.toString(), 'en');
-    if (preCount === 0) {
-      clearInterval(preTimer);
-      startRound();
-    }
-    preCount--;
-  }, 1000);
-}
-
-function startRound() {
-  resetSpeech();
-  clearInterval(timerInterval);
-  clearInterval(techniqueInterval);
-
-  roundCount++;
-  isRest = false;
-
-  if (roundCount > totalRounds) {
-    speak("Session complete. Good job!", 'en');
-    document.getElementById('timerDisplay').textContent = "DONE";
-    return;
+  if (["grip", "takedown", "pin", "submission"].includes(type)) {
+    if (!sessionTracker[type].includes(name)) sessionTracker[type].push(name);
+  } else {
+    if (!sessionTracker.other.includes(name)) sessionTracker.other.push(name);
   }
 
-  document.getElementById('roundCount').textContent = roundCount;
-  speak(`Round ${roundCount}, begin!`, 'en');
-  document.getElementById('beep').play();
-
-  rotateTechniques();
-  techniqueInterval = setInterval(rotateTechniques, 30000);
-
-  let totalSeconds = roundMinutes * 60;
-  const display = document.getElementById('timerDisplay');
-
-  timerInterval = setInterval(() => {
-    if (totalSeconds <= 0) {
-      clearInterval(timerInterval);
-      clearInterval(techniqueInterval);
-      document.getElementById('buzzer').play();
-      speak("Time!", 'en');
-      saveSession();
-      startRest();
-      return;
-    }
-    const min = Math.floor(totalSeconds / 60);
-    const sec = totalSeconds % 60;
-    display.textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
-    if (totalSeconds === 60) speak("One minute left!", 'en');
-    totalSeconds--;
-  }, 1000);
+  updateSessionList();
 }
 
-function startRest() {
-  isRest = true;
-  let restSeconds = 60;
-  const display = document.getElementById('timerDisplay');
-  speak("Rest for one minute.", 'en');
-
-  timerInterval = setInterval(() => {
-    if (restSeconds <= 0) {
-      clearInterval(timerInterval);
-      startPreCountdown();
-      return;
-    }
-    const min = Math.floor(restSeconds / 60);
-    const sec = restSeconds % 60;
-    display.textContent = `Rest: ${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
-    restSeconds--;
-  }, 1000);
-}
-
-function resetAll() {
-  resetSpeech();
-  clearInterval(timerInterval);
-  clearInterval(techniqueInterval);
-  document.getElementById('output').innerHTML = "<em>Select a technique to begin.</em>";
-  document.getElementById('timerDisplay').textContent = "00:00";
-  currentTechniques = [];
-  roundCount = 0;
-  sessionHistory = [];
-  document.getElementById('roundCount').textContent = "0";
-  document.getElementById('sessionList').innerHTML = "";
-}
-
-function rotateTechniques() {
-  const categories = Object.keys(techniques);
-  const type = categories[Math.floor(Math.random() * categories.length)];
-  showTechniques(type);
-}
-
-function showTechniques(type) {
-  resetSpeech();
-  const list = techniques[type];
-  if (!list || list.length < 1) return;
-
-  const shuffled = [...list].sort(() => 0.5 - Math.random());
-  const selected = shuffled.slice(0, 5);
-  currentTechniques = selected;
-
-  const title = `${type[0].toUpperCase() + type.slice(1)} Techniques`;
-  const items = selected.map(tech => `<li>${tech}</li>`).join('');
-  document.getElementById('output').innerHTML = `<strong>${title}:</strong><ul>${items}</ul>`;
-}
-
-function saveSession() {
-  const roundData = {
-    round: roundCount,
-    techniques: [...currentTechniques]
-  };
-  sessionHistory.push(roundData);
+function updateSessionList() {
   const list = document.getElementById('sessionList');
-  const li = document.createElement('li');
-  li.textContent = `Round ${roundData.round}: ${roundData.techniques.join(', ')}`;
-  list.appendChild(li);
+  list.innerHTML = '';
+
+  ["grip", "takedown", "pin", "submission"].forEach(type =>
+    sessionTracker[type].forEach(tech => {
+      const emoji = getEmojiByType(type, tech);
+      list.innerHTML += `<li>${emoji} ${tech}</li>`;
+    })
+  );
+
+  sessionTracker.other.forEach(tech => {
+    const emoji = getEmojiByType("other", tech);
+    list.innerHTML += `<li>${emoji} ${tech}</li>`;
+  });
 }
 
-function speak(text, lang = 'en') {
-  if (!text) return;
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = lang === 'ja' ? 'ja-JP' : 'en-US';
-  utter.pitch = 1;
-  utter.rate = 0.95;
-
-  const voices = speechSynthesis.getVoices();
-  const voice = voices.find(v => lang === 'ja' ? v.lang.startsWith('ja') : v.lang.startsWith('en'));
-  if (voice) utter.voice = voice;
-
-  speechSynthesis.speak(utter);
+function capitalize(word) {
+  return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
-function resetSpeech() {
-  speechSynthesis.cancel();
+function getEmojiByType(type, tech) {
+  for (const group of Object.values(techniques)) {
+    for (const [name, emoji] of group) {
+      if (name === tech) return emoji;
+    }
+  }
+  return "";
 }
+
+// TIMER
+let timerDuration = 5 * 60; // 5 minutes
+let timerInterval;
+let remaining = timerDuration;
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (remaining <= 0) {
+      clearInterval(timerInterval);
+      document.getElementById('timer').textContent = "TIME!";
+    } else {
+      remaining--;
+      updateTimerDisplay();
+    }
+  }, 1000);
+}
+
+function pauseTimer() {
+  clearInterval(timerInterval);
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  remaining = timerDuration;
+  updateTimerDisplay();
+}
+
+function updateTimerDisplay() {
+  const minutes = Math.floor(remaining / 60);
+  const seconds = remaining % 60;
+  document.getElementById('timer').textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+// Initialize
+updateTimerDisplay();
 </script>
-
 </body>
 </html>
 
