@@ -114,133 +114,165 @@
     </div>
   </div>
 
-<script>
-const techniques = {
-  grip: [
-    ["Collar tie", "🤼"], ["Two on one (Russian tie)", "🤼"], ["Inside tie", "🤼"],
-    ["Overhook", "🤼"], ["Underhook", "🤼"], ["Armdrag grip", "🥋"], ["Cross collar grip", "🥋"]
-  ],
-  takedown: [
-    ["Osoto gari", "🥋"], ["Uchi mata", "🥋"], ["Single leg", "🤼"],
-    ["Double leg", "🤼"], ["Lat drop", "🤼"]
-  ],
-  pass: [
-    ["Knee slice", "🥋"], ["Leg drag", "🥋"], ["Torreando", "🥋"],
-    ["Over-under", "🥋"], ["Cartwheel pass", "🤼"]
-  ],
-  pin: [
-    ["Side control", "🥋"], ["Kesa gatame", "🥋"], ["North-south", "🥋"],
-    ["Mount", "🥋"], ["Technical mount", "🥋"]
-  ],
-  submission: [
-    ["Armbar", "🥋"], ["RNC", "🤼"], ["Triangle", "🥋"],
-    ["Kimura", "🥋"], ["Guillotine", "🤼"]
-  ],
-  sweep: [
-    ["Scissor sweep", "🥋"], ["Hip bump sweep", "🥋"], ["Flower sweep", "🥋"],
-    ["X-guard sweep", "🥋"], ["Lumberjack sweep", "🥋"]
-  ],
-  scramble: [
-    ["Steamroller (Peterson Roll)", "🤼"], ["Granby roll", "🤼"],
-    ["Sit through", "🤼"], ["Switch base", "🤼"], ["Dogfight wrestle-up", "🤼"]
-  ]
-};
+  <script>
+    const techniques = {
+      grip: [
+        ["Collar tie", "🤼"], ["Two on one (Russian tie)", "🤼"], ["Inside tie", "🤼"],
+        ["Overhook", "🤼"], ["Underhook", "🤼"], ["Armdrag grip", "🥋"], ["Cross collar grip", "🥋"]
+      ],
+      takedown: [
+        ["Osoto gari", "🥋"], ["Uchi mata", "🥋"], ["Single leg", "🤼"],
+        ["Double leg", "🤼"], ["Lat drop", "🤼"]
+      ],
+      pass: [
+        ["Knee slice", "🥋"], ["Leg drag", "🥋"], ["Torreando", "🥋"],
+        ["Over-under", "🥋"], ["Cartwheel pass", "🤼"]
+      ],
+      pin: [
+        ["Side control", "🥋"], ["Kesa gatame", "🥋"], ["North-south", "🥋"],
+        ["Mount", "🥋"], ["Technical mount", "🥋"]
+      ],
+      submission: [
+        ["Armbar", "🥋"], ["RNC", "🤼"], ["Triangle", "🥋"],
+        ["Kimura", "🥋"], ["Guillotine", "🤼"]
+      ],
+      sweep: [
+        ["Scissor sweep", "🥋"], ["Hip bump sweep", "🥋"], ["Flower sweep", "🥋"],
+        ["X-guard sweep", "🥋"], ["Lumberjack sweep", "🥋"]
+      ],
+      scramble: [
+        ["Steamroller (Peterson Roll)", "🤼"], ["Granby roll", "🤼"],
+        ["Sit through", "🤼"], ["Switch base", "🤼"], ["Dogfight wrestle-up", "🤼"]
+      ]
+    };
 
-const sessionTracker = {
-  grip: [], takedown: [], pin: [], submission: [], other: []
-};
+    const sessionTracker = {
+      grip: [], takedown: [], pin: [], submission: [], other: []
+    };
 
-function showTechniques(category) {
-  const list = techniques[category];
-  if (!list) return;
+    function showTechniques(category) {
+      const list = techniques[category];
+      if (!list) return;
 
-  const output = document.getElementById('output');
-  output.innerHTML = `<strong>${capitalize(category)} Techniques:</strong><ul>` +
-    list.map(([name, icon]) =>
-      `<li onclick="addToSession('${category}','${name}', this)">${icon} ${name}</li>`
-    ).join('') + '</ul>';
-}
-
-function addToSession(type, name, element) {
-  element.classList.add("clicked");
-  setTimeout(() => element.classList.remove("clicked"), 300);
-
-  if (["grip", "takedown", "pin", "submission"].includes(type)) {
-    if (!sessionTracker[type].includes(name)) sessionTracker[type].push(name);
-  } else {
-    if (!sessionTracker.other.includes(name)) sessionTracker.other.push(name);
-  }
-
-  updateSessionList();
-}
-
-function updateSessionList() {
-  const list = document.getElementById('sessionList');
-  list.innerHTML = '';
-
-  ["grip", "takedown", "pin", "submission"].forEach(type =>
-    sessionTracker[type].forEach(tech => {
-      const emoji = getEmojiByType(type, tech);
-      list.innerHTML += `<li>${emoji} ${tech}</li>`;
-    })
-  );
-
-  sessionTracker.other.forEach(tech => {
-    const emoji = getEmojiByType("other", tech);
-    list.innerHTML += `<li>${emoji} ${tech}</li>`;
-  });
-}
-
-function capitalize(word) {
-  return word.charAt(0).toUpperCase() + word.slice(1);
-}
-
-function getEmojiByType(type, tech) {
-  for (const group of Object.values(techniques)) {
-    for (const [name, emoji] of group) {
-      if (name === tech) return emoji;
+      const output = document.getElementById('output');
+      output.innerHTML = `<strong>${capitalize(category)} Techniques:</strong><ul>` +
+        list.map(([name, icon]) =>
+          `<li onclick="addToSession('${category}','${name}', this)">${icon} ${name}</li>`
+        ).join('') + '</ul>';
     }
-  }
-  return "";
-}
 
-// TIMER
-let timerDuration = 5 * 60; // 5 minutes
-let timerInterval;
-let remaining = timerDuration;
+    function addToSession(type, name, element) {
+      element.classList.add("clicked");
+      setTimeout(() => element.classList.remove("clicked"), 300);
 
-function startTimer() {
-  clearInterval(timerInterval);
-  timerInterval = setInterval(() => {
-    if (remaining <= 0) {
+      if (["grip", "takedown", "pin", "submission"].includes(type)) {
+        if (!sessionTracker[type].includes(name)) sessionTracker[type].push(name);
+      } else {
+        if (!sessionTracker.other.includes(name)) sessionTracker.other.push(name);
+      }
+
+      updateSessionList();
+    }
+
+    function updateSessionList() {
+      const list = document.getElementById('sessionList');
+      list.innerHTML = '';
+
+      ["grip", "takedown", "pin", "submission"].forEach(type =>
+        sessionTracker[type].forEach(tech => {
+          const emoji = getEmojiByType(type, tech);
+          list.innerHTML += `<li>${emoji} ${tech}</li>`;
+        })
+      );
+
+      sessionTracker.other.forEach(tech => {
+        const emoji = getEmojiByType("other", tech);
+        list.innerHTML += `<li>${emoji} ${tech}</li>`;
+      });
+    }
+
+    function capitalize(word) {
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    }
+
+    function getEmojiByType(type, tech) {
+      for (const group of Object.values(techniques)) {
+        for (const [name, emoji] of group) {
+          if (name === tech) return emoji;
+        }
+      }
+      return "";
+    }
+
+    // TIMER
+    let timerDuration = 5 * 60;
+    let timerInterval;
+    let remaining = timerDuration;
+
+    function startTimer() {
       clearInterval(timerInterval);
-      document.getElementById('timer').textContent = "TIME!";
-    } else {
-      remaining--;
+      timerInterval = setInterval(() => {
+        if (remaining <= 0) {
+          clearInterval(timerInterval);
+          document.getElementById('timer').textContent = "TIME!";
+        } else {
+          remaining--;
+          updateTimerDisplay();
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      clearInterval(timerInterval);
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      remaining = timerDuration;
       updateTimerDisplay();
     }
-  }, 1000);
-}
 
-function pauseTimer() {
-  clearInterval(timerInterval);
-}
+    function updateTimerDisplay() {
+      const minutes = Math.floor(remaining / 60);
+      const seconds = remaining % 60;
+      document.getElementById('timer').textContent =
+        `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
 
-function resetTimer() {
-  clearInterval(timerInterval);
-  remaining = timerDuration;
-  updateTimerDisplay();
-}
+    updateTimerDisplay();
+  </script>
 
-function updateTimerDisplay() {
-  const minutes = Math.floor(remaining / 60);
-  const seconds = remaining % 60;
-  document.getElementById('timer').textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-}
+  <!-- ✅ Chatbase Bot Embed -->
+  <script>
+    (function(){
+      if(!window.chatbase || window.chatbase("getState") !== "initialized"){
+        window.chatbase = (...args) => {
+          if(!window.chatbase.q){ window.chatbase.q = [] }
+          window.chatbase.q.push(args)
+        };
+        window.chatbase = new Proxy(window.chatbase, {
+          get(target, prop) {
+            if(prop === "q"){ return target.q }
+            return (...args) => target(prop, ...args)
+          }
+        });
+      }
+      const onLoad = function(){
+        const script = document.createElement("script");
+        script.src = "https://www.chatbase.co/embed.min.js";
+        script.id = "MAPW-AkdpBFzy_hV4tcwH";
+        script.domain = "www.chatbase.co";
+        document.body.appendChild(script);
+      };
+      if(document.readyState === "complete"){
+        onLoad();
+      } else {
+        window.addEventListener("load", onLoad);
+      }
+    })();
+  </script>
 
-// Initialize
-updateTimerDisplay();
-</script>
 </body>
 </html>
+
 
